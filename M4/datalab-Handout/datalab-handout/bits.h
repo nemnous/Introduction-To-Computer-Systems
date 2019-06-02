@@ -31,19 +31,19 @@
    synchronized with ISO/IEC 10646:2014, plus Amendment 1 (published
    2015-05-15).  */
 /* We do not support C11 <threads.h>.  */
-int tmin();
-int test_tmin();
-int trueFiveEighths(int);
-int test_trueFiveEighths(int);
-unsigned float_half(unsigned);
-unsigned test_float_half(unsigned);
-unsigned float_twice(unsigned);
-unsigned test_float_twice(unsigned);
-int rotateRight(int, int);
-int test_rotateRight(int, int);
-int divpwr2(int, int);
-int test_divpwr2(int, int);
-int bang(int);
-int test_bang(int);
-int trueThreeFourths(int);
-int test_trueThreeFourths(int);
+int isTmin(int);
+int test_isTmin(int);
+int isLessOrEqual(int, int);
+int test_isLessOrEqual(int, int);
+int isTmax(int);
+int test_isTmax(int);
+int isNonNegative(int);
+int test_isNonNegative(int);
+int sign(int);
+int test_sign(int);
+int isZero(int);
+int test_isZero(int);
+unsigned float_abs(unsigned);
+unsigned test_float_abs(unsigned);
+unsigned float_neg(unsigned);
+unsigned test_float_neg(unsigned);

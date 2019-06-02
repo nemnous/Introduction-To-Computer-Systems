@@ -1,30 +1,14 @@
-/* Testing Code */
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
-#include <math.h>
 
-/* Routines used by floation point test code */
+#define TMin INT_MIN
+#define TMax INT_MAX
 
-/* Convert from bit level representation to floating point number */
-float u2f(unsigned u) {
-  union {
-    unsigned u;
-    float f;
-  } a;
-  a.u = u;
-  return a.f;
-}
+#include "btest.h"
+#include "bits.h"
 
-/* Convert from floating point number to bit-level representation */
-unsigned f2u(float f) {
-  union {
-    unsigned u;
-    float f;
-  } a;
-  a.f = f;
-  return a.u;
-}
-
+test_rec test_set[] = {
 /* Copyright (C) 1991-2016 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -58,49 +42,26 @@ unsigned f2u(float f) {
    synchronized with ISO/IEC 10646:2014, plus Amendment 1 (published
    2015-05-15).  */
 /* We do not support C11 <threads.h>.  */
-int test_tmin(void) {
-  return 0x80000000;
-}
-int test_trueFiveEighths(int x)
-{
-  return (int) (((long long int) x * 5)/8);
-}
-unsigned test_float_half(unsigned uf) {
-  float f = u2f(uf);
-  float hf = 0.5*f;
-  if (isnan(f))
-    return uf;
-  else
-    return f2u(hf);
-}
-unsigned test_float_twice(unsigned uf) {
-  float f = u2f(uf);
-  float tf = 2*f;
-  if (isnan(f))
-    return uf;
-  else
-    return f2u(tf);
-}
-int test_rotateRight(int x, int n) {
-  unsigned u = (unsigned) x;
-  int i;
-  for (i = 0; i < n; i++) {
-      unsigned lsb = (u & 1) << 31;
-      unsigned rest = u >> 1;
-      u = lsb | rest;
-  }
-  return (int) u;
-}
-int test_divpwr2(int x, int n)
-{
-    int p2n = 1<<n;
-    return x/p2n;
-}
-int test_bang(int x)
-{
-  return !x;
-}
-int test_trueThreeFourths(int x)
-{
-  return (int) (((long long int) x * 3)/4);
-}
+ {"isTmin", (funct_t) isTmin, (funct_t) test_isTmin, 1, "! ~ & ^ | +", 10, 1,
+  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
+ {"isLessOrEqual", (funct_t) isLessOrEqual, (funct_t) test_isLessOrEqual, 2,
+    "! ~ & ^ | + << >>", 24, 3,
+  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
+ {"isTmax", (funct_t) isTmax, (funct_t) test_isTmax, 1, "! ~ & ^ | +", 10, 1,
+  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
+ {"isNonNegative", (funct_t) isNonNegative, (funct_t) test_isNonNegative, 1,
+    "! ~ & ^ | + << >>", 6, 3,
+  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
+ {"sign", (funct_t) sign, (funct_t) test_sign, 1, "! ~ & ^ | + << >>", 10, 2,
+     {{-TMax, TMax},{TMin,TMax},{TMin,TMax}}},
+ {"isZero", (funct_t) isZero, (funct_t) test_isZero, 1, "! ~ & ^ | + << >>", 2, 1,
+  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
+ {"float_abs", (funct_t) float_abs, (funct_t) test_float_abs, 1,
+    "$", 10, 2,
+     {{1, 1},{1,1},{1,1}}},
+ {"float_neg", (funct_t) float_neg, (funct_t) test_float_neg, 1,
+    "$", 10, 2,
+     {{1, 1},{1,1},{1,1}}},
+  {"", NULL, NULL, 0, "", 0, 0,
+   {{0, 0},{0,0},{0,0}}}
+};

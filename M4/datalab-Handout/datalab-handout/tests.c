@@ -1,14 +1,30 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* Testing Code */
+
 #include <limits.h>
+#include <math.h>
 
-#define TMin INT_MIN
-#define TMax INT_MAX
+/* Routines used by floation point test code */
 
-#include "btest.h"
-#include "bits.h"
+/* Convert from bit level representation to floating point number */
+float u2f(unsigned u) {
+  union {
+    unsigned u;
+    float f;
+  } a;
+  a.u = u;
+  return a.f;
+}
 
-test_rec test_set[] = {
+/* Convert from floating point number to bit-level representation */
+unsigned f2u(float f) {
+  union {
+    unsigned u;
+    float f;
+  } a;
+  a.f = f;
+  return a.u;
+}
+
 /* Copyright (C) 1991-2016 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -42,29 +58,42 @@ test_rec test_set[] = {
    synchronized with ISO/IEC 10646:2014, plus Amendment 1 (published
    2015-05-15).  */
 /* We do not support C11 <threads.h>.  */
- {"tmin", (funct_t) tmin, (funct_t) test_tmin, 0, "! ~ & ^ | + << >>", 4, 1,
-  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
- {"trueFiveEighths", (funct_t) trueFiveEighths, (funct_t) test_trueFiveEighths, 1,
-    "! ~ & ^ | + << >>", 25, 4,
-  {{TMin,TMax},{TMin,TMax},{TMin,TMax}}},
- {"float_half", (funct_t) float_half, (funct_t) test_float_half, 1,
-    "$", 30, 4,
-     {{1, 1},{1,1},{1,1}}},
- {"float_twice", (funct_t) float_twice, (funct_t) test_float_twice, 1,
-    "$", 30, 4,
-     {{1, 1},{1,1},{1,1}}},
- {"rotateRight", (funct_t) rotateRight, (funct_t) test_rotateRight,
-   2, "! ~ & ^ | + << >>", 25, 3,
-  {{TMin, TMax},{0,31},{TMin,TMax}}},
- {"divpwr2", (funct_t) divpwr2, (funct_t) test_divpwr2, 2,
-    "! ~ & ^ | + << >>", 15, 2,
-  {{TMin, TMax},{0,30},{TMin,TMax}}},
- {"bang", (funct_t) bang, (funct_t) test_bang, 1,
-    "~ & ^ | + << >>", 12, 4,
-  {{TMin, TMax},{TMin,TMax},{TMin,TMax}}},
- {"trueThreeFourths", (funct_t) trueThreeFourths, (funct_t) test_trueThreeFourths, 1,
-    "! ~ & ^ | + << >>", 20, 4,
-  {{TMin,TMax},{TMin,TMax},{TMin,TMax}}},
-  {"", NULL, NULL, 0, "", 0, 0,
-   {{0, 0},{0,0},{0,0}}}
-};
+int test_isTmin(int x) {
+    return x == 0x80000000;
+}
+int test_isLessOrEqual(int x, int y)
+{
+  return x <= y;
+}
+int test_isTmax(int x) {
+    return x == 0x7FFFFFFF;
+}
+int test_isNonNegative(int x) {
+  return x >= 0;
+}
+int test_sign(int x) {
+    if ( !x ) return 0;
+    return (x < 0) ? -1 : 1;
+}
+int test_isZero(int x) {
+  return x == 0;
+}
+unsigned test_float_abs(unsigned uf) {
+  float f = u2f(uf);
+  unsigned unf = f2u(-f);
+  if (isnan(f))
+    return uf;
+  /* An unfortunate hack to get around a limitation of the BDD Checker */
+  if ((int) uf < 0)
+      return unf;
+  else
+      return uf;
+}
+unsigned test_float_neg(unsigned uf) {
+    float f = u2f(uf);
+    float nf = -f;
+    if (isnan(f))
+ return uf;
+    else
+ return f2u(nf);
+}

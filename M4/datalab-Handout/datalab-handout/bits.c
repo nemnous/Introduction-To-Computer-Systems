@@ -164,114 +164,128 @@ NOTES:
    synchronized with ISO/IEC 10646:2014, plus Amendment 1 (published
    2015-05-15).  */
 /* We do not support C11 <threads.h>.  */
-/* 
- * tmin - return minimum two's complement integer 
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 4
+/*
+ * isTmin - returns 1 if x is the minimum, two's complement number,
+ *     and 0 otherwise 
+ *   Legal ops: ! ~ & ^ | +
+ *   Max ops: 10
  *   Rating: 1
  */
-int tmin(void) {
-  return 1 << 31;
+int isTmin(int x) {
+  return !( (!x) | (x + x) );
+}
+/* 
+ * isLessOrEqual - if x <= y  then return 1, else return 0 
+ *   Example: isLessOrEqual(4,5) = 1.
+ *   Legal ops: ! ~ & ^ | + << >>
+ *   Max ops: 24
+ *   Rating: 3
+ */
+int isLessOrEqual(int x, int y) {
+  int ysign = (y >> 31) & 1;
+	//same thing as above
+	int xsign = (x >> 31) & 1;
+	//checks if x and y are the same, whether one is negative or not,
+	// and then checks if x is less than y
+		int z = (!(ysign^xsign)) & (((x+~y)>>31) & 1);
+		//if x is less than y and the signs are the same or one variable is negative
+  return z|((!ysign) & xsign);
 }
 /*
- * trueFiveEighths - multiplies by 5/8 rounding toward 0,
- *  avoiding errors due to overflow
- *  Examples: trueFiveEighths(11) = 6
- *            trueFiveEighths(-9) = -5
- *            trueFiveEighths(0x30000000) = 0x1E000000 (no overflow)
- *  Legal ops: ! ~ & ^ | + << >>
- *  Max ops: 25
- *  Rating: 4
+ * isTmax - returns 1 if x is the maximum, two's complement number,
+ *     and 0 otherwise 
+ *   Legal ops: ! ~ & ^ | +
+ *   Max ops: 10
+ *   Rating: 1
  */
-int trueFiveEighths(int x)
-{
-    int eights = x >>3;
-    int rem = x & 7;
-    return eights + (eights << 2) + (rem + (rem << 2) + (x >> 31 & 7) >> 3);
+int isTmax(int x) {
+  int maxOut = x+1;
+
+  x += maxOut;
+  x = ~x;
+  maxOut = !(maxOut);
+  x = x|maxOut;
+  x = !x;
+
+  return x;
 }
 /* 
- * float_half - Return bit-level equivalent of expression 0.5*f for
- *   floating point argument f.
- *   Both the argument and result are passed as unsigned int's, but
- *   they are to be interpreted as the bit-level representation of
- *   single-precision floating point values.
- *   When argument is NaN, return argument
- *   Legal ops: Any integer/unsigned operations incl. ||, &&. also if, while
- *   Max ops: 30
- *   Rating: 4
- */
-unsigned float_half(unsigned uf) {
-  return 2;
-}
-/* 
- * float_twice - Return bit-level equivalent of expression 2*f for
- *   floating point argument f.
- *   Both the argument and result are passed as unsigned int's, but
- *   they are to be interpreted as the bit-level representation of
- *   single-precision floating point values.
- *   When argument is NaN, return argument
- *   Legal ops: Any integer/unsigned operations incl. ||, &&. also if, while
- *   Max ops: 30
- *   Rating: 4
- */
-unsigned float_twice(unsigned uf) {
-  return 2;
-}
-/* 
- * rotateRight - Rotate x to the right by n
- *   Can assume that 0 <= n <= 31
- *   Examples: rotateRight(0x87654321,4) = 0x76543218
- *   Legal ops: ~ & ^ | + << >> !
- *   Max ops: 25
- *   Rating: 3 
- */
-int rotateRight(int x, int n) {
-	int y = (x >> n) & ~(-1 << (32 +  (~n + 1)));
-	int z = x << (32 + (~n + 1));
-	return y | z;
-}
-/* 
- * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
- *  Round toward zero
- *   Examples: divpwr2(15,1) = 7, divpwr2(-33,4) = -2
+ * isNonNegative - return 1 if x >= 0, return 0 otherwise 
+ *   Example: isNonNegative(-1) = 0.  isNonNegative(0) = 1.
  *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 15
+ *   Max ops: 6
+ *   Rating: 3
+ */
+int isNonNegative(int x) {
+  return (x >> 31) + 0x01;
+}
+/* 
+ * sign - return 1 if positive, 0 if zero, and -1 if negative
+ *  Examples: sign(130) = 1
+ *            sign(-23) = -1
+ *  Legal ops: ! ~ & ^ | + << >>
+ *  Max ops: 10
+ *  Rating: 2
+ */
+int sign(int x) {
+    return ((!!x) | (x >> 31));
+}
+/*
+ * isZero - returns 1 if x == 0, and 0 otherwise 
+ *   Examples: isZero(5) = 0, isZero(0) = 1
+ *   Legal ops: ! ~ & ^ | + << >>
+ *   Max ops: 2
+ *   Rating: 1
+ */
+int isZero(int x) {
+  return !x;
+}
+/* 
+ * float_abs - Return bit-level equivalent of absolute value of f for
+ *   floating point argument f.
+ *   Both the argument and result are passed as unsigned int's, but
+ *   they are to be interpreted as the bit-level representations of
+ *   single-precision floating point values.
+ *   When argument is NaN, return argument..
+ *   Legal ops: Any integer/unsigned operations incl. ||, &&. also if, while
+ *   Max ops: 10
  *   Rating: 2
  */
-int divpwr2(int x, int n) {
-	int isNeg = x >> 31;
-	int ans = isNeg & ((1 << n) + ~0);
-  return (x + ans) >> n;
+unsigned float_abs(unsigned uf) {
+  unsigned mask = 0x7FFFFFFF;		
+  unsigned minNaN = 0x7F800001;
+  unsigned res = uf & mask;		// set sign bit to 0
+  
+  // return argument if it is NaN, all NaN >= minimum NaN
+  if (res >= minNaN)
+  {
+    return uf;
+  }
+  else
+  {
+    return res;
+  }
 }
 /* 
- * bang - Compute !x without using !
- *   Examples: bang(3) = 0, bang(0) = 1
- *   Legal ops: ~ & ^ | + << >>
- *   Max ops: 12
- *   Rating: 4 
+ * float_neg - Return bit-level equivalent of expression -f for
+ *   floating point argument f.
+ *   Both the argument and result are passed as unsigned int's, but
+ *   they are to be interpreted as the bit-level representations of
+ *   single-precision floating point values.
+ *   When argument is NaN, return argument.
+ *   Legal ops: Any integer/unsigned operations incl. ||, &&. also if, while
+ *   Max ops: 10
+ *   Rating: 2
  */
-int bang(int x) {
-	int comp = ~x +1;
-	int ans = (comp | x) >> 31;
-  	return ans + 1;
-}
-/*
- * trueThreeFourths - multiplies by 3/4 rounding toward 0,
- *   avoiding errors due to overflow
- *   Examples: trueThreeFourths(11) = 8
- *             trueThreeFourths(-9) = -6
- *             trueThreeFourths(1073741824) = 805306368 (no overflow)
- *   Legal ops: ! ~ & ^ | + << >>
- *   Max ops: 20
- *   Rating: 4
- */
-int trueThreeFourths(int x)
-{
-	int sign = x >>31;
-	int remain = x & 3;
+unsigned float_neg(unsigned uf) 
+{ 
+   int nanCheck = 0x000000FF << 23; /*1's in the 8 exponent bits*/
+   int frac = 0x7FFFFF & uf; /*contains just the fraction value*/
 
-	x = x >> 2;
-	x = x + (x << 1);
-	x = x + ((remain + (remain << 1) + (sign & 3)) >> 2);
-  return x;
+   /*return argument if exp bits are all 1's and frac is not zero*/
+   if((nanCheck & uf) == nanCheck && frac)
+      return uf;
+
+   /*otherwise, just flip the sign bit*/
+   return uf ^ (1 << 31);
 }
